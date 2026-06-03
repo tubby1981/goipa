@@ -42,6 +42,8 @@ type User struct {
 	Email            string              `json:"mail"`
 	TelephoneNumber  string              `json:"telephonenumber"`
 	Mobile           string              `json:"mobile"`
+	Ou               string              `json:"ou"`
+	Title            string              `json:"title"`
 	Shell            string              `json:"loginshell"`
 	Category         string              `json:"userclass"`
 	SudoRules        []string            `json:"memberofindirect_sudorule"`
@@ -104,6 +106,7 @@ func (u *User) ToOptions() Options {
 		"ipasshpubkey":    u.FormatSSHAuthorizedKeys(),
 		"telephonenumber": u.TelephoneNumber,
 		"mobile":          u.Mobile,
+		"title":           u.Title,
 		"userclass":       u.Category,
 	}
 
@@ -134,6 +137,8 @@ func (u *User) fromJSON(raw []byte) error {
 	u.Email = res.Get("mail.0").String()
 	u.Mobile = res.Get("mobile.0").String()
 	u.TelephoneNumber = res.Get("telephonenumber.0").String()
+	u.Ou = res.Get("ou.0").String()
+	u.Title = res.Get("title.0").String()
 	u.Shell = res.Get("loginshell.0").String()
 	u.Category = res.Get("userclass.0").String()
 	u.RandomPassword = res.Get("randompassword").String()
@@ -504,7 +509,7 @@ func (c *Client) UserDelete(preserve, stopOnError bool, usernames ...string) err
 
 // Modify user. Currently only modifies a subset of user attributes: mail,
 // givenname, sn, homedirectory, loginshell, displayname, ipasshpubkey,
-// telephonenumber, and mobile
+// telephonenumber, mobile, and title
 func (c *Client) UserMod(user *User) (*User, error) {
 	if user.Username == "" {
 		return nil, errors.New("Username is required")
