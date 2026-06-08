@@ -356,9 +356,11 @@ func (c *Client) SetPassword(username, old_passwd, new_passwd, otpcode string) e
 
 	form := url.Values{
 		"user":         {username},
-		"otp":          {otpcode},
 		"old_password": {old_passwd},
 		"new_password": {new_passwd},
+	}
+	if len(otpcode) > 0 {
+		form.Set("otp", otpcode)
 	}
 
 	req, err := http.NewRequest("POST", ipaUrl, strings.NewReader(form.Encode()))
@@ -387,6 +389,25 @@ func (c *Client) SetPassword(username, old_passwd, new_passwd, otpcode string) e
 		return ErrInvalidPassword
 	} else if strings.ToLower(status) != "ok" {
 		return fmt.Errorf("ipa: change password failed. Unknown status: %s", status)
+	}
+
+	return nil
+}
+
+// AdminSetPassword sets a user's password via the IPA passwd command using
+// administrator privileges (no current password required). Provide OTP when the
+// user has MFA enabled.
+func (c *Client) AdminSetPassword(username, new_passwd, otpcode string) error {
+	options := Options{
+		"password": new_passwd,
+	}
+	if len(otpcode) > 0 {
+		options["otp"] = otpcode
+	}
+
+	_, err := c.rpc("passwd", []string{username}, options)
+	if err != nil {
+		return err
 	}
 
 	return nil
